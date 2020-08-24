@@ -3,7 +3,7 @@
 LAN_TYPE='br-lan'
 SLEEP_TIME=5
 # Long lived access token from Home assistant
-TOKEN='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI5YjllMTg3MWM4YjU0NDJkOWJmMTljNTM0Y2ZjYTdjZCIsImlhdCI6MTU2ODczNjUxNCwiZXhwIjoxODg0MDk2NTE0fQ.e89zj9I14j4OurFuD1xnmwtPbV3IJVauPK8C6_BZ-OA'
+TOKEN='Insert log lived token from Home assistant here'
 
 if [ -f /tmp/traffic_monitor.lock ];
 then
