@@ -3,7 +3,7 @@
 LAN_TYPE='br-lan'
 SLEEP_TIME=5
 # Long lived access token from Home assistant
-TOKEN=''
+TOKEN='eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiI5YjllMTg3MWM4YjU0NDJkOWJmMTljNTM0Y2ZjYTdjZCIsImlhdCI6MTU2ODczNjUxNCwiZXhwIjoxODg0MDk2NTE0fQ.e89zj9I14j4OurFuD1xnmwtPbV3IJVauPK8C6_BZ-OA'
 
 if [ -f /tmp/traffic_monitor.lock ];
 then
@@ -60,12 +60,12 @@ do
     fi                                                                  
   done                                                                        
 
-  iptables -w -L RRDIPT -vxZ -t filter | fgrep RETURN | awk -v st="$SLEEP_TIME" 'BEGIN { printf "{\"attributes\":{\n" } { if (NR % 2 == 1) printf "\"%s\": {\n\"host\": \"%s\",\n\"upload\": \"%d\",\n",NR,$8,$2 * (8 / st); else printf "\"download\": \"%d\"\n},\n",$2 * (8 / st);} END { printf "\"9999\":{\n\"host\": \"\",\n\"upload\": \"\",\n\"download\": \"\"}},\n\"state\":\"%s\"}\n",NR/2 }' | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L' > /tmp/traffic_monitor.json
+  iptables -w -L RRDIPT -vxZ -t filter | fgrep RETURN | sed 's/.local//' | awk -v st="$SLEEP_TIME" '{if (NR % 2 == 1) printf "%s %d ",$8,$2 * (8 / st); else printf "%d\n",$2 * (8 / st);}' | sort | awk 'BEGIN {TU=0; TD=0; printf "{\"attributes\":{\n" } { printf "\"%s\": {\n\"host\": \"%s\",\n\"upload\": \"%d\",\n\"download\": \"%d\"\n},\n",NR,$1,$2,$3; TU=TU+$2; TD=TD+$3;} END { printf "\"9999\":{\n\"host\": \"%s\",\n\"upload\": \"%d\",\n\"download\": \"%d\"}},\n\"state\":\"%s\"}\n","Total", TU, TD, NR}' | sed -r ':L;s=\b([0-9]+)([0-9]{3})\b=\1,\2=g;t L' > /tmp/traffic_monitor.json
   if [ $? -ne 0 ]; then   
       echo "JSON output failed"
   fi  
 
-  curl -silent -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -d @/tmp/traffic_monitor.json http://192.168.5.200:8123/api/states/sensor.bw_usage > /dev/null	   
+  curl -m 10 -silent -X POST -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" -d @/tmp/traffic_monitor.json http://192.168.5.200:8123/api/states/sensor.bw_usage > /dev/null	   
 
   sleep ${SLEEP_TIME}
 done
